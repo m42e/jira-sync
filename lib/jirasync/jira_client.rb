@@ -35,7 +35,7 @@ module JiraSync
         def get(jira_id)
             url = "#{@baseurl}/rest/api/latest/issue/#{jira_id}"
             auth = {:username => @username, :password => @password}
-            response = HTTParty.get url, {:basic_auth => auth, :timeout => @timeout}
+            response = HTTParty.get url, {:basic_auth => auth, :timeout => @timeout, :headers => {'Cookie' => 'SMCHALLENGE=YES'}}
             if response.code == 200
                 response.parsed_response
             else
@@ -47,7 +47,7 @@ module JiraSync
             attachments = []
             Parallel.map(issue['fields']['attachment'], :in_threads => 64) do |attachment|
                 auth = {:username => @username, :password => @password}
-                response = HTTParty.get attachment['content'], {:basic_auth => auth, :timeout => @timeout}
+                response = HTTParty.get attachment['content'], {:basic_auth => auth, :timeout => @timeout, :headers => {'Cookie' => 'SMCHALLENGE=YES'}}
                 if response.code == 200
                     attachments.push({:data => response.body, :attachment => attachment, :issue => issue})
                 else
@@ -65,7 +65,7 @@ module JiraSync
             response = HTTParty.get url, {
                 :basic_auth => auth,
                 :query => {:jql => 'project="' + project_id + '" order by created', fields: 'summary,updated', maxResults: '1'},
-                :timeout => @first_requets_timeout
+                :timeout => @first_requets_timeout, :headers => {'Cookie' => 'SMCHALLENGE=YES'}
             }
             if response.code == 200
                 response.parsed_response
@@ -82,7 +82,7 @@ module JiraSync
             response = HTTParty.get url, {
                 :basic_auth => auth,
                 :query => {:jql => jql, fields: 'summary,updated', maxResults: '1000'},
-                :timeout => @timeout
+                :timeout => @timeout, :headers => {'Cookie' => 'SMCHALLENGE=YES'}
             }
             if response.code == 200
                 response.parsed_response
@@ -97,7 +97,7 @@ module JiraSync
             response = HTTParty.get url, {
                 :basic_auth => auth,
                 :query => {:jql => 'project="' + project_id + '"', fields: 'summary,updated', maxResults: '50'},
-                :timeout => @timeout
+                :timeout => @timeout, :headers => {'Cookie' => 'SMCHALLENGE=YES'}
             }
             if response.code == 200
                 response.parse_response
